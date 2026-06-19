@@ -1,5 +1,5 @@
+from google import genai
 import os
-from dotenv import load_dotenv
 from pypdf import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import chromadb
@@ -8,28 +8,16 @@ from src.config import CHUNK_SIZE, CHUNK_OVERLAP
 from src.config import CHROMA_DB_PATH
 from src.config import TOP_K_RESULTS
 
-load_dotenv()
-
-# -----------------------------
-# Gemini Client
-# -----------------------------
-client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY")
-)
-
-# -----------------------------
+client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 # ChromaDB Setup
-# -----------------------------
+
 chroma_client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
 
 collection = chroma_client.get_or_create_collection(
     name="support_kb"
 )
 
-
-# -----------------------------
 # Load Documents
-# -----------------------------
 def load_documents(data_folder="data"):
     docs = []
 
@@ -63,10 +51,7 @@ def load_documents(data_folder="data"):
 
     return docs
 
-
-# -----------------------------
 # Chunk Documents
-# -----------------------------
 def chunk_documents(documents):
 
     splitter = RecursiveCharacterTextSplitter(
@@ -89,10 +74,7 @@ def chunk_documents(documents):
 
     return chunks
 
-
-# -----------------------------
 # Gemini Embedding
-# -----------------------------
 embedding_model = SentenceTransformer(
     "all-MiniLM-L6-v2"
 )
@@ -100,9 +82,7 @@ embedding_model = SentenceTransformer(
 def get_embedding(text):
     return embedding_model.encode(text).tolist()
 
-# -----------------------------
 # Store Chunks
-# -----------------------------
 def ingest_documents():
 
     docs = load_documents()
@@ -128,9 +108,7 @@ def ingest_documents():
     print("Documents stored in ChromaDB")
 
 
-# -----------------------------
 # Retrieve Context
-# -----------------------------
 def retrieve(query, top_k=TOP_K_RESULTS):
 
     query_embedding = get_embedding(query)
@@ -152,9 +130,7 @@ def retrieve(query, top_k=TOP_K_RESULTS):
     return retrieved_chunks
 
 
-# -----------------------------
 # Test
-# -----------------------------
 if __name__ == "__main__":
 
     # Run only first time
