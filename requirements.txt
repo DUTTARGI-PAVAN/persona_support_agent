@@ -1,9 +1,7 @@
 streamlit
-chromadb==0.4.24
+chromadb
 sentence-transformers
 langchain
 pypdf
 python-dotenv
 protobuf==3.20.3
-torch
-transformers
