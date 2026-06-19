@@ -5,27 +5,25 @@ from src.rag_pipeline import retrieve
 from src.generator import generate_response
 from src.escalator import should_escalate
 
+# --------------------------------------------------
+# Page Configuration
+# --------------------------------------------------
+
 st.set_page_config(
     page_title="Persona Adaptive Support Agent",
     page_icon="🤖",
     layout="wide"
 )
 
+# --------------------------------------------------
+# Custom Styling
+# --------------------------------------------------
+
 st.markdown("""
 <style>
+
 .main {
     padding-top: 1rem;
-}
-
-.stTextInput > div > div > input {
-    border-radius: 10px;
-}
-
-.persona-card {
-    padding: 15px;
-    border-radius: 10px;
-    background-color: #1e1e1e;
-    border: 1px solid #444;
 }
 
 .response-box {
@@ -34,91 +32,190 @@ st.markdown("""
     background-color: #262730;
     border-left: 5px solid #4CAF50;
 }
+
 </style>
 """, unsafe_allow_html=True)
 
+# --------------------------------------------------
+# Sidebar
+# --------------------------------------------------
+
+with st.sidebar:
+
+    st.header("📊 System Information")
+
+    st.success("System Ready")
+
+    st.markdown("""
+### Components
+
+- Persona Classification
+- RAG Retrieval
+- ChromaDB
+- Response Generator
+- Escalation Engine
+""")
+
+    st.markdown("---")
+
+    st.subheader("📚 Knowledge Base")
+
+    st.write("• Password Reset Guide")
+    st.write("• Login Issues")
+    st.write("• Billing Policy")
+    st.write("• Account Recovery")
+    st.write("• Subscription Management")
+    st.write("• API Troubleshooting")
+
+# --------------------------------------------------
+# Main Header
+# --------------------------------------------------
+
 st.title("🤖 Persona-Adaptive Support Agent")
-st.caption("AI-Powered Customer Support using RAG and Persona Detection")
+
+st.caption(
+    "AI-Powered Customer Support using Retrieval-Augmented Generation (RAG)"
+)
+
+# --------------------------------------------------
+# User Input
+# --------------------------------------------------
 
 query = st.text_area(
     "Enter your support query",
-    height=120,
+    height=150,
     placeholder="Example: I forgot my password and can't access my account..."
 )
 
+# --------------------------------------------------
+# Submit Button
+# --------------------------------------------------
+
 if st.button("🚀 Generate Response", use_container_width=True):
 
-    if query:
+    if not query.strip():
 
-        result = classify_persona(query)
+        st.warning("Please enter a query.")
 
-        persona = result["persona"]
-        confidence = result["confidence"]
+    else:
 
-        chunks = retrieve(query)
+        with st.spinner("Analyzing your request..."):
 
-        response = generate_response(
-            query,
-            persona,
-            chunks
-        )
+            try:
 
-        escalate, reason = should_escalate(
-            query,
-            confidence
-        )
+                # Persona Classification
+                result = classify_persona(query)
 
-        col1, col2 = st.columns(2)
+                persona = result["persona"]
+                confidence = result["confidence"]
 
-        with col1:
-            st.metric(
-                "Detected Persona",
-                persona
-            )
+                # Retrieval
+                try:
+                    chunks = retrieve(query)
+                except Exception as e:
+                    st.error(f"Retrieval Error: {e}")
+                    chunks = []
 
-        with col2:
-            st.metric(
-                "Confidence",
-                f"{confidence*100:.0f}%"
-            )
+                # Response Generation
+                response = generate_response(
+                    query,
+                    persona,
+                    chunks
+                )
 
-        st.divider()
+                # Escalation Check
+                escalate, reason = should_escalate(
+                    query,
+                    confidence
+                )
 
-        st.subheader("📋 AI Response")
+                # ----------------------------------
+                # Metrics
+                # ----------------------------------
 
-        st.markdown(
-            f"""
-            <div class="response-box">
-            {response}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+                col1, col2 = st.columns(2)
 
-        if chunks:
-
-            st.divider()
-
-            with st.expander("📚 Retrieved Knowledge Base Context"):
-
-                for idx, chunk in enumerate(chunks, 1):
-
-                    st.markdown(
-                        f"""
-                        **Document {idx}**
-
-                        {chunk['text'][:300]}...
-                        """
+                with col1:
+                    st.metric(
+                        label="Detected Persona",
+                        value=persona
                     )
 
-        if escalate:
+                with col2:
+                    st.metric(
+                        label="Confidence",
+                        value=f"{confidence * 100:.0f}%"
+                    )
 
-            st.error(
-                f"⚠️ Escalation Required: {reason}"
-            )
+                st.divider()
 
-        else:
+                # ----------------------------------
+                # Response
+                # ----------------------------------
 
-            st.success(
-                "✅ No escalation required"
-            )
+                st.subheader("📋 AI Response")
+
+                st.markdown(
+                    f"""
+                    <div class="response-box">
+                    {response}
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+                # ----------------------------------
+                # Retrieved Context
+                # ----------------------------------
+
+                if chunks:
+
+                    st.divider()
+
+                    with st.expander(
+                        "📚 Retrieved Knowledge Base Context"
+                    ):
+
+                        for idx, chunk in enumerate(chunks, start=1):
+
+                            st.markdown(
+                                f"""
+**Document {idx}**
+
+{chunk['text'][:400]}...
+"""
+                            )
+
+                # ----------------------------------
+                # Escalation
+                # ----------------------------------
+
+                st.divider()
+
+                if escalate:
+
+                    st.error(
+                        f"⚠️ Escalation Required: {reason}"
+                    )
+
+                else:
+
+                    st.success(
+                        "✅ No escalation required"
+                    )
+
+            except Exception as e:
+
+                st.error(
+                    f"An error occurred: {str(e)}"
+                )
+
+# --------------------------------------------------
+# Footer
+# --------------------------------------------------
+
+st.markdown("---")
+
+st.caption(
+    "Built using Streamlit, ChromaDB, Sentence Transformers, and RAG Architecture"
+)
