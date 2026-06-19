@@ -1,0 +1,13 @@
+Account Recovery Guide
+
+Users can recover their account using their registered email address.
+
+Steps:
+1. Visit the Account Recovery page.
+2. Enter the registered email.
+3. Verify identity using the verification code.
+4. Create a new password.
+
+If email access is unavailable:
+- Contact customer support.
+- Provide identity verification documents.

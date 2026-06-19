@@ -1,0 +1,15 @@
+Subscription Management
+
+Upgrade Plan:
+1. Open Account Settings.
+2. Select Subscription.
+3. Choose a new plan.
+4. Confirm payment.
+
+Cancel Subscription:
+1. Open Subscription Settings.
+2. Click Cancel Subscription.
+3. Confirm cancellation.
+
+Cancellation Policy:
+- Access remains active until the end of the billing cycle.

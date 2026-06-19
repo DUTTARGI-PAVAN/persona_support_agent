@@ -1,0 +1,19 @@
+Login Issues Guide
+
+Problem:
+Unable to log in.
+
+Possible Causes:
+- Incorrect username
+- Incorrect password
+- Account locked after multiple failed attempts
+
+Resolution:
+1. Verify login credentials.
+2. Reset password if forgotten.
+3. Wait 15 minutes after account lockout.
+4. Contact support if the issue persists.
+
+Two-Factor Authentication Issues:
+- Ensure device time is synchronized.
+- Use backup authentication codes if available.

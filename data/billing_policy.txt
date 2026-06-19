@@ -1,0 +1,16 @@
+Billing Policy
+
+Subscription charges occur on the first day of each billing cycle.
+
+Refund Requests:
+- Refund requests are reviewed within 3 business days.
+- Duplicate charges require manual investigation.
+- Refund approvals may take 5 to 7 business days.
+
+Billing Disputes:
+- Users must provide transaction details.
+- Support agents may request payment receipts.
+
+Failed Payments:
+- Users should verify card information.
+- Ensure sufficient account balance.
