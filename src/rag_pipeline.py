@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
 from pypdf import PdfReader
-from google import genai
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import chromadb
 from sentence_transformers import SentenceTransformer
