@@ -110,7 +110,6 @@ def ingest_documents():
 
 # Retrieve Context
 def retrieve(query, top_k=TOP_K_RESULTS):
-
     query_embedding = get_embedding(query)
 
     results = collection.query(
@@ -120,12 +119,20 @@ def retrieve(query, top_k=TOP_K_RESULTS):
 
     retrieved_chunks = []
 
-    for i in range(len(results["documents"][0])):
+    # Ensure we safely have documents returned before parsing
+    if results and results["documents"] and len(results["documents"][0]) > 0:
+        for i in range(len(results["documents"][0])):
+            
+            # ChromaDB returns 'distances' (lower is closer/better).
+            # Convert it into a clean similarity confidence score framework (1.0 - distance)
+            distance = results["distances"][0][i] if "distances" in results and results["distances"] else 0.0
+            similarity_score = 1.0 - distance
 
-        retrieved_chunks.append({
-            "text": results["documents"][0][i],
-            "source": results["metadatas"][0][i]["source"]
-        })
+            retrieved_chunks.append({
+                "text": results["documents"][0][i],
+                "source": results["metadatas"][0][i]["source"],
+                "score": similarity_score  # <-- THIS KEY WAS MISSING
+            })
 
     return retrieved_chunks
 
