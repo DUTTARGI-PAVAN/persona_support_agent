@@ -21,135 +21,128 @@ collection = chroma_client.get_or_create_collection(
 def load_documents(data_folder="data"):
     docs = []
 
-    for file in os.listdir(data_folder):
+for file in os.listdir(data_folder):
 
-        file_path = os.path.join(data_folder, file)
+    file_path = os.path.join(data_folder, file)
 
-        # TXT and MD files
-        if file.endswith(".txt") or file.endswith(".md"):
-            with open(file_path, "r", encoding="utf-8") as f:
-                docs.append({
-                    "source": file,
-                    "text": f.read()
-                })
+# TXT and MD files
+        if file.endswith(".txt") or file.endswith(".md"):
+            with open(file_path, "r", encoding="utf-8") as f:
+                docs.append({
+                    "source": file,
+                    "text": f.read()
+                })
 
-        # PDF files
-        elif file.endswith(".pdf"):
-            reader = PdfReader(file_path)
+        # PDF files
+        elif file.endswith(".pdf"):
+            reader = PdfReader(file_path)
 
-            pdf_text = ""
+            pdf_text = ""
 
-            for page in reader.pages:
-                text = page.extract_text()
-                if text:
-                    pdf_text += text + "\n"
+            for page in reader.pages:
+                text = page.extract_text()
+                if text:
+                    pdf_text += text + "\n"
 
-            docs.append({
-                "source": file,
-                "text": pdf_text
-            })
+            docs.append({
+                "source": file,
+                "text": pdf_text
+            })
 
-    return docs
+    return docs
 
 # Chunk Documents
 def chunk_documents(documents):
 
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=CHUNK_SIZE,
-    chunk_overlap=CHUNK_OVERLAP
-    )
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=CHUNK_SIZE,
+    chunk_overlap=CHUNK_OVERLAP
+    )
 
-    chunks = []
+    chunks = []
 
-    for doc in documents:
+    for doc in documents:
 
-        split_text = splitter.split_text(doc["text"])
+        split_text = splitter.split_text(doc["text"])
 
-        for i, chunk in enumerate(split_text):
-            chunks.append({
-                "id": f"{doc['source']}_{i}",
-                "source": doc["source"],
-                "text": chunk
-            })
+        for i, chunk in enumerate(split_text):
+            chunks.append({
+                "id": f"{doc['source']}_{i}",
+                "source": doc["source"],
+                "text": chunk
+            })
 
-    return chunks
+    return chunks
 
 # Gemini Embedding
 embedding_model = SentenceTransformer(
-    "all-MiniLM-L6-v2"
+    "all-MiniLM-L6-v2"
 )
 
 def get_embedding(text):
-    return embedding_model.encode(text).tolist()
+    return embedding_model.encode(text).tolist()
 
 # Store Chunks
 def ingest_documents():
 
-    docs = load_documents()
+    docs = load_documents()
 
-    chunks = chunk_documents(docs)
+    chunks = chunk_documents(docs)
 
-    print(f"Loaded {len(docs)} documents")
-    print(f"Created {len(chunks)} chunks")
+    print(f"Loaded {len(docs)} documents")
+    print(f"Created {len(chunks)} chunks")
 
-    for chunk in chunks:
+    for chunk in chunks:
 
-        embedding = get_embedding(chunk["text"])
+        embedding = get_embedding(chunk["text"])
 
-        collection.add(
-            ids=[chunk["id"]],
-            embeddings=[embedding],
-            documents=[chunk["text"]],
-            metadatas=[{
-                "source": chunk["source"]
-            }]
-        )
+        collection.add(
+            ids=[chunk["id"]],
+            embeddings=[embedding],
+            documents=[chunk["text"]],
+            metadatas=[{
+                "source": chunk["source"]
+            }]
+        )
 
-    print("Documents stored in ChromaDB")
+    print("Documents stored in ChromaDB")
 
 
 # Retrieve Context
 def retrieve(query, top_k=TOP_K_RESULTS):
-    query_embedding = get_embedding(query)
 
-    results = collection.query(
-        query_embeddings=[query_embedding],
-        n_results=top_k
-    )
+    query_embedding = get_embedding(query)
 
-    retrieved_chunks = []
+    results = collection.query(
+        query_embeddings=[query_embedding],
+        n_results=top_k
+    )
 
-    # Ensure we safely have documents returned before parsing
-    if results and results["documents"] and len(results["documents"][0]) > 0:
-        for i in range(len(results["documents"][0])):
-            
-            # ChromaDB returns 'distances' (lower is closer/better).
-            # Convert it into a clean similarity confidence score framework (1.0 - distance)
-            distance = results["distances"][0][i] if "distances" in results and results["distances"] else 0.0
-            similarity_score = 1.0 - distance
+    retrieved_chunks = []
 
-            retrieved_chunks.append({
-                "text": results["documents"][0][i],
-                "source": results["metadatas"][0][i]["source"],
-                "score": similarity_score  # <-- THIS KEY WAS MISSING
-            })
+    for i in range(len(results["documents"][0])):
 
-    return retrieved_chunks
+        retrieved_chunks.append({
+            "text": results["documents"][0][i],
+            "source": results["metadatas"][0][i]["source"]
+        })
+
+    return retrieved_chunks
 
 
 # Test
 if __name__ == "__main__":
 
-    # Run only first time
-    ingest_documents()
+    # Run only first time
+    ingest_documents()
 
-    query = "How do I reset my password?"
+    query = "How do I reset my password?"
 
-    results = retrieve(query)
+    results = retrieve(query)
 
-    print("\nTop Results:\n")
+    print("\nTop Results:\n")
 
-    for item in results:
-        print("=" * 50)
-        print("Source:", item["source"])
-        print(item["text"])
+    for item in results:
+        print("=" * 50)
+        print("Source:", item["source"])
+        print(item["text"])
